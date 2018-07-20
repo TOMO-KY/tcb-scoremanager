@@ -1,0 +1,112 @@
+CakePHP2インストール&設定
+
+◆ ダウンロード
+GitHubにて以下の手順よりCakePHPのバージョン2に関するリポジトリにアクセスする
+
+1. GitHubにアクセス
+https://github.com/cakephp/cakephp
+
+2. 「2.x」ブランチよりコードをダウンロード
+リスト左上の「Branch: master」から「2.x」ブランチを選択する
+リスト右上の「Clone or download」より「Download ZIP」よりコード一式をダウンロードする
+参考: ブランチURL = https://github.com/cakephp/cakephp/tree/2.x
+
+
+◆ インストール
+ダウンロードしたZIPファイルをサーバ上の公開WEBディレクトリ内にて展開する
+又は、予め展開後にサーバ上の公開WEBディレクトリ内にアップする
+
+
+◆ 設定
+
+1. PDOによるMySQL利用設定
+PDOにてMySQLを利用するためにphp.iniファイルの下記行のコメントアウトを外す
+(存在しない場合は適当な場所に追加する)
+--| php.ini |---------------------
+
+extension=pdo_mysql.so
+
+----------------------------------
+
+2. mod_rewriteを有効化
+Apacheの「httpd.cof」ファイル内にて下記行のコメントアウトを外す
+(存在しない場合は適当な場所に追加する)
+--| httpd.conf |------------------
+
+LoadModule rewrite_module modules/mod_rewrite.so
+
+----------------------------------
+
+修正後はhttpdにてApacheを再起動又はgracefulにて設定を反映
+[再起動]
+「systemctl start httpd.service」 ( CentOS6以前は「httpd restart」 )
+[再起動せずに設定を反映]
+「systemctl reload httpd」 ( コマンドエラーが発生した場合は「service httpd graceful」 を試す )
+
+
+3. CakePHPのセキュリティ設定を変更
+CakePHP内にて暗号化に利用されている文字列及び数値データを以下のファイルの該当箇所に設定(書き換え)
+
+ファイル: /app/Config/Core.php
+
+--| Core.php |--------------------
+
+/**
+ * A random string used in security hashing methods.
+ */
+	Configure::write('Security.salt', '[この部分に40文字程度の英数字]');
+
+/**
+ * A random numeric string (digits only) used to encrypt/decrypt strings.
+ */
+	Configure::write('Security.cipherSeed', '[この部分に30文字程度の数値]');
+
+----------------------------------
+
+
+4. logディレクトリの作成
+CakePHP内にはlog用ディレクトリが存在しないため、log用ディレクトリを作成する
+tmpディレクトリと同一ディレクトリに作成する場合は以下のディレクトリ構成となる
+/app/log/ログファイル群
+
+
+5. tmpディレクトリ及びlogディレクトリの権限変更
+tmpディレクトリ及びlogディレクトリ以下にファイル書き込みを行うため、
+該当するディレクトリ及びそのディレクトリ以下の全てのディレクトリに書き込み権限を付与する
+(パーミッション設定を[775]又は[755]とする)
+
+
+6. データベースへの接続設定
+CakePHPにてデータベースへの接続を行うための設定を行う
+編集ファイル及び設定内容は以下
+
+ファイル: /app/Config/database.php
+(ファイルが存在しない場合は「database.php.default」ファイルをコピーして作成する)
+
+--| database.php |----------------
+
+	public $default = array(
+		'datasource' => 'Database/Mysql',
+		'persistent' => false,
+		'host' => '[接続するDBのホスト名を指定]',
+		'login' => '[ログイン名を指定]',
+		'password' => '[パスワードを指定]',
+		'database' => '[データベース名を指定]',
+		'prefix' => '',
+		'encoding' => '[接続時の文字コードを指定]',
+	);
+
+	public $test = array(
+		'datasource' => 'Database/Mysql',
+		'persistent' => false,
+		'host' => '[接続するDBのホスト名を指定]',
+		'login' => '[ログイン名を指定]',
+		'password' => '[パスワードを指定]',
+		'database' => '[データベース名を指定]',
+		'prefix' => '',
+		'encoding' => '[接続時の文字コードを指定]',
+	);
+
+----------------------------------
+
+
